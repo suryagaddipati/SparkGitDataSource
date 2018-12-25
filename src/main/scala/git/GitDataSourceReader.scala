@@ -18,15 +18,17 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging  {
 
   override def readSchema(): StructType =  StructType(
-    StructField("shortMessage", DataTypes.StringType, true)::
-     StructField("author",StructType(
-      StructField("name", DataTypes.StringType, true) :: Nil) )
-      ::Nil)
+    str("message")::
+    str("shortMessage")::
+      StructField("commitTime", DataTypes.DateType, false)::
+    StructField("author", StructType(str("name")::str("email") :: Nil)) ::
+    StructField("committer", StructType(str("name")::str("email") :: Nil)) ::
+      Nil)
 
   override def planInputPartitions():  util.List[InputPartition[InternalRow]] = {
     util.Arrays.asList(new GitInputPartition(options.get(DataSourceOptions.PATH_KEY).get))
   }
-
+ def str(fieldName: String)  = StructField(fieldName, DataTypes.StringType, false)
 }
  class GitInputPartition(path: String) extends  InputPartition[InternalRow]{
    override def createPartitionReader(): GitLogReader =  {
@@ -40,9 +42,16 @@ class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader w
 
 
    override def get(): InternalRow = {
-      val revCommit = log.next()
-      InternalRow (str(revCommit.getShortMessage),
-       InternalRow( str( revCommit.getAuthorIdent.getName)))
+      val commit = log.next()
+      InternalRow (str(commit.getFullMessage),str(commit.getShortMessage), commit.getCommitTime.toLong * 1000, author(commit),committer(commit))
+   }
+   def author(commit :RevCommit):InternalRow = {
+     val author = commit.getAuthorIdent
+      InternalRow( str(author.getName), str(author.getEmailAddress))
+   }
+   def committer(commit :RevCommit):InternalRow = {
+     val author = commit.getCommitterIdent
+     InternalRow( str(author.getName), str(author.getEmailAddress))
    }
    def str(string:String) = UTF8String.fromString(string)
 

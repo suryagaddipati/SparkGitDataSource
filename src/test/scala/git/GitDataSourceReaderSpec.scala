@@ -10,7 +10,7 @@ class GitDataSourceReaderSpec extends FlatSpec with Matchers {
 
     val logData = spark.read.format("sg.spark.git").load(logFile)
     logData.createOrReplaceTempView("giti")
-    val m = spark.sql("select author.name from giti")
+    val m = spark.sql("select * from giti")
     m.show()
     spark.stop()
   }
