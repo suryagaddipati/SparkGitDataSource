@@ -50,6 +50,49 @@ only showing top 20 rows
 |   Sunday|    1803|
 +---------+--------+
 
+
+/// top 3 by day
+
+val sq = """
+SELECT
+  name,
+  day,
+  commitCount
+FROM (
+
+SELECT author.name as name, date_format(commitTime,'EEEE') as day, count(*) as commitCount, dense_rank() OVER (PARTITION BY date_format(commitTime,'EEEE') ORDER BY count(*) DESC) as rank
+  from repoName group by day,name) tmp
+WHERE
+  rank <= 3
+  """
+  
+ spark.sql(sq).show
+ 
+ +---------------+---------+-----------+
+|           name|      day|commitCount|
++---------------+---------+-----------+
+|  Matei Zaharia|   Friday|        224|
+|    Reynold Xin|   Friday|        196|
+|Patrick Wendell|   Friday|         95|
+|  Matei Zaharia|   Monday|        238|
+|    Reynold Xin|   Monday|        199|
+|Patrick Wendell|   Monday|        160|
+|  Matei Zaharia| Saturday|        207|
+|    Reynold Xin| Saturday|        157|
+|Patrick Wendell| Saturday|        107|
+|  Matei Zaharia|   Sunday|        254|
+|    Reynold Xin|   Sunday|        142|
+|Patrick Wendell|   Sunday|         95|
+|    Reynold Xin| Thursday|        252|
+|  Matei Zaharia| Thursday|        206|
+|Patrick Wendell| Thursday|        139|
+|    Reynold Xin|  Tuesday|        247|
+|  Matei Zaharia|  Tuesday|        239|
+|Patrick Wendell|  Tuesday|        124|
+|    Reynold Xin|Wednesday|        272|
+|  Matei Zaharia|Wednesday|        224|
++---------------+---------+-----------+
+
 ```
 
 
