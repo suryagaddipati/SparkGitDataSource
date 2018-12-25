@@ -1,14 +1,12 @@
 ```scala
     val logFile = "/Users/sgaddipati/code/spark/.git" 
-    val spark = SparkSession.builder
-               .master("local[*]").appName("Git datasource").getOrCreate()
+   
     val logData = spark.read.format("sg.spark.git").load(logFile)
     logData.createOrReplaceTempView("repoName")
-    val m = spark.sql("
+    spark.sql("
     select author.name, count(*)  from repoName group by author.name order by count(*) desc
-    ")
-    m.show()
-    spark.stop()
+    ").show
+
 
 
 |              name|count(1)|
@@ -35,6 +33,22 @@
 |  Michael Armbrust|     281|
 +------------------+--------+
 only showing top 20 rows
+
+   spark.sql("
+    select date_format(commitTime,'EEEE') as day, count(*)  from repoName group by date_format(commitTime,'EEEE') order by count(*) desc
+    ").show
+    
++---------+--------+
+|      day|count(1)|
++---------+--------+
+|  Tuesday|    4257|
+|Wednesday|    4053|
+| Thursday|    3920|
+|   Monday|    3591|
+|   Friday|    3417|
+| Saturday|    1837|
+|   Sunday|    1803|
++---------+--------+
 
 ```
 
