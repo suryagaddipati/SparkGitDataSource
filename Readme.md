@@ -1,5 +1,5 @@
 ```scala
- val logFile = "/Users/sgaddipati/code/spark/.git" 
+    val logFile = "/Users/sgaddipati/code/spark/.git" 
     val spark = SparkSession.builder
                .master("local[*]").appName("Git datasource").getOrCreate()
     val logData = spark.read.format("sg.spark.git").load(logFile)
