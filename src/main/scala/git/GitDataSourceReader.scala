@@ -20,7 +20,7 @@ class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader w
   override def readSchema(): StructType =  StructType(
     str("message")::
     str("shortMessage")::
-      StructField("commitTime", DataTypes.DateType, false)::
+      StructField("commitTime", DataTypes.TimestampType, false)::
     StructField("author", StructType(str("name")::str("email") :: Nil)) ::
     StructField("committer", StructType(str("name")::str("email") :: Nil)) ::
       Nil)
@@ -43,7 +43,7 @@ class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader w
 
    override def get(): InternalRow = {
       val commit = log.next()
-      InternalRow (str(commit.getFullMessage),str(commit.getShortMessage), commit.getCommitTime.toLong * 1000, author(commit),committer(commit))
+      InternalRow (str(commit.getFullMessage),str(commit.getShortMessage), commit.getCommitTime.toLong * 1000000, author(commit),committer(commit))
    }
    def author(commit :RevCommit):InternalRow = {
      val author = commit.getAuthorIdent
