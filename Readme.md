@@ -1,13 +1,16 @@
 ```scala
- val logFile = "/Users/sgaddipati/code/spark/.git" // Should be some file on your system
-    val spark = SparkSession.builder.master("local[*]").appName("Git datasource").getOrCreate()
+ val logFile = "/Users/sgaddipati/code/spark/.git" 
+    val spark = SparkSession.builder
+               .master("local[*]").appName("Git datasource").getOrCreate()
     val logData = spark.read.format("sg.spark.git").load(logFile)
     logData.createOrReplaceTempView("repoName")
-    val m = spark.sql("select author.name, count(*)  from repoName group by author.name order by count(*) desc")
+    val m = spark.sql("
+    select author.name, count(*)  from repoName group by author.name order by count(*) desc
+    ")
     m.show()
     spark.stop()
-```
-```
+
+
 |              name|count(1)|
 +------------------+--------+
 |     Matei Zaharia|    1592|
