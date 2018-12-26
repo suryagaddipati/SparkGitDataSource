@@ -18,6 +18,8 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging  {
 
   override def readSchema(): StructType =  StructType(
+    str("sha")::
+    str("shortSha")::
     str("message")::
     str("shortMessage")::
       StructField("commitTime", DataTypes.TimestampType, false)::
@@ -43,17 +45,23 @@ class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader w
 
    override def get(): InternalRow = {
       val commit = log.next()
-      InternalRow (str(commit.getFullMessage),str(commit.getShortMessage), commit.getCommitTime.toLong * 1000000, author(commit),committer(commit))
+      InternalRow (
+        s(commit.getId.name),s(commit.getId.abbreviate(7).name),
+        s(commit.getFullMessage),s(commit.getShortMessage),
+        commit.getCommitTime.toLong * 1000000,
+        author(commit),
+        committer(commit))
    }
    def author(commit :RevCommit):InternalRow = {
+     commit.getTree
      val author = commit.getAuthorIdent
-      InternalRow( str(author.getName), str(author.getEmailAddress))
+      InternalRow( s(author.getName), s(author.getEmailAddress))
    }
    def committer(commit :RevCommit):InternalRow = {
      val author = commit.getCommitterIdent
-     InternalRow( str(author.getName), str(author.getEmailAddress))
+     InternalRow( s(author.getName), s(author.getEmailAddress))
    }
-   def str(string:String) = UTF8String.fromString(string)
+   def s(string:String) = UTF8String.fromString(string)
 
    override def close(): Unit = {}
  }
