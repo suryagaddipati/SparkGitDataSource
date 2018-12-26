@@ -15,7 +15,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
-class GitDataSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging  {
+class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging  {
 
   override def readSchema(): StructType =  StructType(
     str("sha")::

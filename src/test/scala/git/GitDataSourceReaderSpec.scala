@@ -10,13 +10,13 @@ import org.scalatest._
 
 class GitDataSourceReaderSpec extends FlatSpec with Matchers {
   "GitDataSource" should "work with spark sql" in {
-    val logFile = "/Users/sgaddipati/code/spark/.git" // Should be some file on your system
+    val logFile = "/Users/sgaddipati/code/ops-config/.git" // Should be some file on your system
     val spark = SparkSession.builder.master("local[*]").appName("Git datasource").getOrCreate()
-    val logData = spark.read.format("sg.spark.git.DefaultSource").load(logFile)
-    logData.createOrReplaceTempView("repoName")
+    val logData = spark.read.format("sg.spark.git.DefaultSource").option("type","log").load(logFile)
+    logData.createTempView("logs")
     val sql =
       """
-        |select * from repoName
+        |select * from logs where author.email ="sgaddipati@groupon.com" order by commitTime desc
       """.stripMargin
     val m = spark.sql(sql)
     m.show()
