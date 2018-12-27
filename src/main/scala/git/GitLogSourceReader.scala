@@ -5,8 +5,9 @@ import java.util
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.sources.Filter
 import org.apache.spark.sql.sources.v2.DataSourceOptions
-import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, InputPartitionReader}
+import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, InputPartitionReader, SupportsPushDownFilters}
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.UTF8String
 import org.eclipse.jgit.api.Git
@@ -15,7 +16,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
-class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging  {
+class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging with SupportsPushDownFilters  {
 
   override def readSchema(): StructType =  StructType(
     str("sha")::
@@ -28,11 +29,19 @@ class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader wi
       Nil)
 
   override def planInputPartitions():  util.List[InputPartition[InternalRow]] = {
-    util.Arrays.asList(new GitInputPartition(options.get(DataSourceOptions.PATH_KEY).get))
+    util.Arrays.asList(new GitLogInputPartition(options.get(DataSourceOptions.PATH_KEY).get))
   }
  def str(fieldName: String)  = StructField(fieldName, DataTypes.StringType, false)
+
+  override def pushFilters(filters: Array[Filter]): Array[Filter] = {
+      filters
+  }
+
+  override def pushedFilters(): Array[Filter] = {
+   Array()
+  }
 }
- class GitInputPartition(path: String) extends  InputPartition[InternalRow]{
+ class GitLogInputPartition(path: String) extends  InputPartition[InternalRow]{
    override def createPartitionReader(): GitLogReader =  {
      val repo = FileRepositoryBuilder.create(new File(path)).asInstanceOf[FileRepository]
      val git = new Git(repo)
