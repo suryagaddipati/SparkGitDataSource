@@ -5,7 +5,8 @@ import org.apache.spark.sql.sources.v2.{DataSourceOptions, DataSourceV2, ReadSup
 
 class DefaultSource extends DataSourceV2 with ReadSupport{
   override def createReader(options: DataSourceOptions): DataSourceReader =   options.get("type").get match{
-    case "log" => new GitLogSourceReader(options)
+    case "log" => new GitLogReader(options)
+    case "diff" => new GitLogReader(options)
     case _ => throw new IllegalArgumentException("Must provide type option")
   }
 

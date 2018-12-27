@@ -1,4 +1,4 @@
-package sg.spark.git
+package git
 
 import java.io.File
 import java.util
@@ -16,20 +16,21 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 
-class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader with Logging with SupportsPushDownFilters  {
+class GitLogReader(options: DataSourceOptions) extends DataSourceReader with Logging with SupportsPushDownFilters  {
 
   override def readSchema(): StructType =  StructType(
-    str("sha")::
-    str("shortSha")::
-    str("message")::
-    str("shortMessage")::
-      StructField("commitTime", DataTypes.TimestampType, false)::
-    StructField("author", StructType(str("name")::str("email") :: Nil)) ::
-    StructField("committer", StructType(str("name")::str("email") :: Nil)) ::
+    str("oldPath")::
+    str("newPath")::
+    str("oldMode")::
+    str("newMode")::
+    str("changeType")::
+    str("oldSha")::
+     str("newSha")::
+      StructField("score", DataTypes.IntegerType, false)::
       Nil)
 
   override def planInputPartitions():  util.List[InputPartition[InternalRow]] = {
-    util.Arrays.asList(new GitLogInputPartition(options.get(DataSourceOptions.PATH_KEY).get))
+    util.Arrays.asList(new GitDiffPatitionReader(options.get(DataSourceOptions.PATH_KEY).get))
   }
  def str(fieldName: String)  = StructField(fieldName, DataTypes.StringType, false)
 
@@ -41,14 +42,15 @@ class GitLogSourceReader(options: DataSourceOptions) extends DataSourceReader wi
    Array()
   }
 }
- class GitLogInputPartition(path: String) extends  InputPartition[InternalRow]{
-   override def createPartitionReader(): GitLogReader =  {
-     val repo = FileRepositoryBuilder.create(new File(path)).asInstanceOf[FileRepository]
-     val git = new Git(repo)
-     new GitLogReader(git.log().call().iterator())
-   }
- }
- class GitLogReader(log: util.Iterator[RevCommit]) extends InputPartitionReader[InternalRow]{
+
+class GitDiffPatitionReader(path: String) extends  InputPartition[InternalRow]{
+  override def createPartitionReader(): GitLogInputReader =  {
+    val repo = FileRepositoryBuilder.create(new File(path)).asInstanceOf[FileRepository]
+    val git = new Git(repo)
+    new GitLogInputReader(git.log().call().iterator())
+  }
+}
+ class GitLogInputReader(log: util.Iterator[RevCommit]) extends InputPartitionReader[InternalRow]{
    override def next(): Boolean = log.hasNext
 
 
