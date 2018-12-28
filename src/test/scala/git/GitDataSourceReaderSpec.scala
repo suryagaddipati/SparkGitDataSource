@@ -27,9 +27,13 @@ class GitDataSourceReaderSpec extends FlatSpec with Matchers {
     val spark = SparkSession.builder.master("local[*]").appName("Git datasource").getOrCreate()
     val logData = spark.read.format("sg.spark.git.DefaultSource").option("type","diff").load(logFile)
     logData.createTempView("diff")
+//    val sql =
+//      """
+//        |select * from diff where oldSha ="827383a97c11a61661440ff86ce0c3382a2a23b2"  and newSha="0523f5e378e69f406104fabaf3ebe913de976bdb"
+//      """.stripMargin
     val sql =
       """
-        |select * from diff where oldSha ="827383a97c11a61661440ff86ce0c3382a2a23b2"  and newSha="0523f5e378e69f406104fabaf3ebe913de976bdb"
+        |select * from diff
       """.stripMargin
     val m = spark.sql(sql)
     m.show()
