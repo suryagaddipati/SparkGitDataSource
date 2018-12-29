@@ -33,7 +33,7 @@ class GitDataSourceReaderSpec extends FlatSpec with Matchers {
 //      """.stripMargin
     val sql =
       """
-        |select * from diff
+        |select oldPath,oldSha,newSha from diff
       """.stripMargin
     val m = spark.sql(sql)
     m.show()

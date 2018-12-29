@@ -3,21 +3,19 @@ package git
 import java.io.File
 import java.util
 
-import fs2.Pure
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.sources.{EqualTo, Filter}
 import org.apache.spark.sql.sources.v2.DataSourceOptions
 import org.apache.spark.sql.sources.v2.reader.{DataSourceReader, InputPartition, InputPartitionReader, SupportsPushDownFilters}
+import org.apache.spark.sql.sources.{EqualTo, Filter}
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.UTF8String
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.internal.storage.file.FileRepository
-import org.eclipse.jgit.lib.{Constants, ObjectId, Repository}
+import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.{RevCommit, RevWalk}
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.treewalk.AbstractTreeIterator
 
 
 class GitDiffReader(options: DataSourceOptions) extends DataSourceReader with Logging with SupportsPushDownFilters  {
