@@ -12,9 +12,8 @@ import GitDataSource._
 
 class GitDataSourceReaderSpec extends FlatSpec with Matchers {
   "GitDataSource log" should "work with spark sql" in {
-    val logFile = "/Users/sgaddipati/code/spark/.git" // Should be some file on your system
     val spark = SparkSession.builder.master("local[*]").appName("Git datasource").getOrCreate()
-    spark.read.git(logFile)
+    spark.read.git("/Users/sgaddipati/code/spark/.git")
     val sql =
       """
         |select * from log where shortSha ="4f17fdd" order by commitTime desc
@@ -24,9 +23,8 @@ class GitDataSourceReaderSpec extends FlatSpec with Matchers {
     spark.stop()
   }
   "GitDataSource diff" should "work with spark sql" in {
-    val logFile = "/Users/sgaddipati/code/spark/.git" // Should be some file on your system
     val spark = SparkSession.builder.master("local[*]").appName("Git datasource").getOrCreate()
-    spark.read.git(logFile)
+    spark.read.git("/Users/sgaddipati/code/spark/.git")
 //    val sql =
 //      """
 //        |select * from diff where oldSha ="827383a97c11a61661440ff86ce0c3382a2a23b2"  and newSha="0523f5e378e69f406104fabaf3ebe913de976bdb"
