@@ -87,7 +87,7 @@ class GitDiffPartitionReader(path: String) extends  InputPartition[InternalRow]{
 
     val repo = FileRepositoryBuilder.create(new File(path)).asInstanceOf[FileRepository]
     val git = new Git(repo)
-    val walk = fs2.Stream.emits[Pure,RevCommit]( git.log().call().asScala.to).flatMap(commit => {
+    val walk = git.log().call().asScala.view.flatMap(commit => {
       val newSha = commit.getId.name
       val oldSha  = commit.getParent(0).getId.name
 
@@ -95,16 +95,17 @@ class GitDiffPartitionReader(path: String) extends  InputPartition[InternalRow]{
         .setOldTree(prepareTreeParser(repo, oldSha))
         .setNewTree(prepareTreeParser(repo, newSha))
         .call()
-      fs2.Stream.emits( diffs.asScala.map(d =>Gdiff(d,oldSha,newSha)).to)
+//      fs2.Stream.emits( diffs.asScala.map(d =>Gdiff(d,oldSha,newSha)).to)
+      diffs.asScala.map(d =>Gdiff(d,oldSha,newSha))
     })
 //    walk.drain.g
 
-    new GitDiffLInputReader(walk.take(4).toList.asJava.iterator())
+    new GitDiffLInputReader(walk.iterator)
   }
 }
 
-class GitDiffLInputReader(log: util.Iterator[Gdiff]) extends InputPartitionReader[InternalRow]{
-  override def next(): Boolean = log.hasNext()
+class GitDiffLInputReader(log: Iterator[Gdiff]) extends InputPartitionReader[InternalRow]{
+  override def next(): Boolean = log.hasNext
 
   override def get(): InternalRow = {
     val gdiff = log.next()
