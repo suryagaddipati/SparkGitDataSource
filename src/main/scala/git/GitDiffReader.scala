@@ -35,7 +35,7 @@ class GitDiffReader(options: DataSourceOptions) extends DataSourceReader with Lo
       Nil)
 
   override def planInputPartitions():  util.List[InputPartition[InternalRow]] = {
-    val reader = if(oldSha == null || newSha == null) new GitDiffPartitionReader(options.get(DataSourceOptions.PATH_KEY).get)   //throw  new IllegalArgumentException("diff query requires where clause with oldSha and newSha")
+    val reader = if(oldSha == null && newSha == null) new GitDiffPartitionReader(options.get(DataSourceOptions.PATH_KEY).get)   //throw  new IllegalArgumentException("diff query requires where clause with oldSha and newSha")
     else new GitDiffBetweenPartitionReader(options.get(DataSourceOptions.PATH_KEY).get,oldSha,newSha)
     util.Arrays.asList(reader)
   }
